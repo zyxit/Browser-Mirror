@@ -3,11 +3,10 @@ source 'https://rubygems.org'
 # To control the mirror
 gem 'selenium-webdriver'
 
-# Superfast container
-gem 'thin'
+gem 'eventmachine'
 
-# To handle UI backend
-gem 'sinatra'
+gem 'http_parser.rb'
+
 
 # For frontend UI goodness
 # gem 'ember'
