@@ -4,18 +4,7 @@
   "manifest_version": 2,
   "description": "Extension for Browser Mirror that records all actions that user is making and transmits them to the mirrored browser",  
   "permissions": [
-    "http://*/*",
-    "cookies",
-    "tabs",
-    "bookmarks",
-    "background",
-    "fileBrowserHandler",
-    "history",
-    "management",
-    "proxy",
-    "privacy",
-    "webNavigation",
-    "webRequest"    
+    "http://*/*"
   ],
   "icons": {
     "32" : "32x32.png",

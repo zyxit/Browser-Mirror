@@ -50,6 +50,15 @@ class QueueServer < EM::Connection
     when "open"
     	puts "Opening #{parsed_command["path"]}"
       @driver.get(parsed_command["path"])
+
+		when "scroll"
+    	puts "Scrolling top: #{parsed_command["top"]} left: #{parsed_command["left"]}"      
+      @driver.execute_script("window.scrollTo(#{parsed_command["left"]}, #{parsed_command["top"]})")
+
+		when "resize"
+    	puts "Resizing width: #{parsed_command["width"]} height: #{parsed_command["height"]}"      
+    	@driver.manage.window.resize_to(parsed_command["width"], parsed_command["height"])      
+
     else
       puts "Unknown command: #{parsed_command.inspect}"
     end        
