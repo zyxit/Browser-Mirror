@@ -36,40 +36,88 @@ class QueueServer < EM::Connection
     @q.pop(&process_q)
   end
 
+  def convert_control_key_to_symbol(control_key)
+  	key_map = {
+			"17" => :control,
+			"91" => :meta,
+			"93" => :meta,
+			"18" => :alt,
+			"16" => :shift,
+			"9" => :tab,
+			"8" => :backspace,
+			"13" => :enter,
+			"27" => :escape,
+			"46" => :delete
+  	}
+  	key_map[control_key] || control_key
+  end
+
   def run_command(command)
     #puts "Executing command #{command}"
     parsed_command = JSON.parse(command)
-    case parsed_command["action"]
-    when "click"
-    	puts "Clicking on "+parsed_command["path"]
-      @driver.find_element(:xpath, parsed_command["path"]).click
-    when "type"
-    	puts "Typing #{parsed_command["content"].to_i.chr} in #{parsed_command["path"]}"
-     	@driver.switch_to.active_element.send_keys(parsed_command["content"].to_i.chr)      	    	
-    	
-    when "open"
-    	puts "Opening #{parsed_command["path"]}"
-      @driver.get(parsed_command["path"])
+    
+    begin
 
-		when "scroll"
-    	puts "Scrolling top: #{parsed_command["top"]} left: #{parsed_command["left"]}"      
-      @driver.execute_script("window.scrollTo(#{parsed_command["left"]}, #{parsed_command["top"]})")
+      case parsed_command["action"]
+      when "click"
+        puts "Clicking on "+parsed_command["path"]
+        @driver.find_element(:xpath, parsed_command["path"]).click
 
-		when "resize"
-    	puts "Resizing width: #{parsed_command["width"]} height: #{parsed_command["height"]}"      
-    	@driver.manage.window.resize_to(parsed_command["width"], parsed_command["height"])      
+      when "type"
+      	character = parsed_command["content"]
+        puts "Typing #{character} in #{parsed_command["path"]}"
+        @driver.switch_to.active_element.send_keys(character)
 
-    else
-      puts "Unknown command: #{parsed_command.inspect}"
-    end        
+			when "keydown"
+      	control_key = convert_control_key_to_symbol(parsed_command["keyIdentifier"])
+      	key_buff = []
+      	if parsed_command["altKey"].eql?("true")
+      		key_buff << :alt
+      	end
+      	if parsed_command["ctrlKey"].eql?("true")
+      		key_buff << :control
+      	end
+      	if parsed_command["metaKey"].eql?("true")
+      		key_buff << :meta
+      	end
+      	if parsed_command["shiftKey"].eql?("true")
+      		key_buff << :shift
+      	end
+      	key_buff << control_key
+      	
+      	if key_buff
+      		puts "Pressing #{key_buff}"
+        	@driver.switch_to.active_element.send_keys(key_buff)	
+      	end        
+
+      when "open"
+        puts "Opening #{parsed_command["path"]}"
+        @driver.get(parsed_command["path"])
+
+      when "scroll"
+        puts "Scrolling top: #{parsed_command["top"]} left: #{parsed_command["left"]}"
+        @driver.execute_script("window.scrollTo(#{parsed_command["left"]}, #{parsed_command["top"]})")
+
+      when "resize"
+        puts "Resizing width: #{parsed_command["width"]} height: #{parsed_command["height"]}"
+        @driver.manage.window.resize_to(parsed_command["width"], parsed_command["height"])
+
+      else
+        puts "Unknown command: #{parsed_command.inspect}"
+      end
+
+    rescue Exception => e
+      # Just ignore it
+    end
+
   end
 
   def post_init
     puts "-- someone connected to the echo server!"
   end
 
-  def receive_data data    
-    send_data "HTTP/1.x 200 OK\nConnection: close\n"    
+  def receive_data data
+    send_data "HTTP/1.x 200 OK\nConnection: close\n"
     close_connection_after_writing
     @parser << data
   end

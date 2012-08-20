@@ -1,23 +1,47 @@
+// Sends event to backend
+
+function sendEvent(payload) {
+	var xhr = new XMLHttpRequest();
+	xhr.open("POST", "http://localhost:8081/command.json", true);
+	xhr.setRequestHeader("Content-type", "application/json");
+	xhr.send(payload);
+}
+
+
 if (window.jQuery) {
-	console.info("Binding to all events");
+	console.info("Sending spies");
 
-	//Click
-	$(window).click(function(e) {
-		console.log('clicked on : ' + getXPath(event.target));
-		var xhr = new XMLHttpRequest();
-		xhr.open("POST", "http://localhost:8081/command.json", true);
-		xhr.setRequestHeader("Content-type", "application/json");
-		xhr.send("{\"path\":\"" + getXPath(event.target) + "\", \"action\":\"click\"}");
-	});
+	// Click
+	document.addEventListener("click", function(event) {
+		var elementXPath = getXPath(event.target);
+		console.log('Clicked on : ' + elementXPath);
+		sendEvent("{\"path\":\"" + elementXPath + "\", \"action\":\"click\"}");
+	}, true);
 
-	//Type
-	$(window).keypress(function(e) {
-		console.log('typed ' + e.which + ' in : ' + getXPath(event.target));
-		var xhr = new XMLHttpRequest();
-		xhr.open("POST", "http://localhost:8081/command.json", true);
-		xhr.setRequestHeader("Content-type", "application/json");
-		xhr.send("{\"path\":\"" + getXPath(event.target) + "\", \"action\":\"type\", \"content\":\"" + e.which + "\"}");
-	});
+
+	// Type
+	document.addEventListener("keypress", function(event) {
+		var elementXPath = getXPath(event.target);
+		var keyIdentifier = String.fromCharCode(event.which);
+		console.log('Pressed: ' + keyIdentifier + ' on ' + elementXPath + ' alt: ' + event.ctrlKey + ' meta: ' + event.metaKey + ' shift: ' + event.shiftKey);
+		sendEvent("{\"path\":\"" + elementXPath + "\", \"action\":\"type\", \"content\":\"" + keyIdentifier + "\"}");
+	}, true);
+
+	// Key down – that's for special keys
+	document.addEventListener("keydown", function(event) {
+		var elementXPath = getXPath(event.target);
+		var keyIdentifier;
+		if (String.fromCharCode(event.which)!="") {
+			keyIdentifier = String.fromCharCode(event.which);
+		} else{
+			keyIdentifier = event.which;
+		};
+		
+		console.log('Pressed down: ' + keyIdentifier + ' on ' + elementXPath + ' alt: ' + event.altKey + ' meta: ' + event.metaKey + ' shift: ' + event.shiftKey);
+		sendEvent("{\"path\":\"" + elementXPath + "\", \"action\":\"keydown\", \"keyIdentifier\":\"" + keyIdentifier + "\", \"metaKey\":\"" + event.metaKey + "\", \"ctrlKey\":\"" + event.ctrlKey + "\", \"altKey\":\"" + event.altKey + "\", \"shiftKey\":\"" + event.shiftKey + "\"}");
+	}, true);
+
+
 
 	// //Navigate
 	// chrome.webNavigation.onBeforeNavigate.addListener(function(details){
@@ -27,16 +51,18 @@ if (window.jQuery) {
 	// 	xhr.setRequestHeader("Content-type", "application/json");
 	// 	xhr.send("{\"path\":\""+details.url+"\", \"action\":\"open\"}");		
 	// });
-
 	//Scroll
 	$(window).scroll(function(e) {
-		var scrollTop = $(window).scrollTop();
-		var scrollLeft = $(window).scrollLeft();
-		console.log("Scrolling top: " + scrollTop + " left: " + scrollLeft);
-		var xhr = new XMLHttpRequest();
-		xhr.open("POST", "http://localhost:8081/command.json", true);
-		xhr.setRequestHeader("Content-type", "application/json");
-		xhr.send("{\"top\":\"" + scrollTop + "\", \"action\":\"scroll\", \"left\":\"" + scrollLeft + "\"}");
+		//Detecting whether it's programmatically or not
+		if (e.hasOwnProperty('originalEvent')) {
+			var scrollTop = $(window).scrollTop();
+			var scrollLeft = $(window).scrollLeft();
+			console.log("Scrolling top: " + scrollTop + " left: " + scrollLeft);
+			var xhr = new XMLHttpRequest();
+			xhr.open("POST", "http://localhost:8081/command.json", true);
+			xhr.setRequestHeader("Content-type", "application/json");
+			xhr.send("{\"top\":\"" + scrollTop + "\", \"action\":\"scroll\", \"left\":\"" + scrollLeft + "\"}");
+		};
 	});
 
 	//Resize
