@@ -84,6 +84,22 @@ if (window.jQuery) {
 
 
 
+
+	// Mouseover
+	document.addEventListener("mouseover", function(event) {		
+		var elementXPath = getXPath(event.target);
+		console.log('Mouseover : ' + elementXPath);
+		sendEvent("{\"path\":\"" + elementXPath + "\", \"action\":\"mouseover\"}");		
+	}, true);
+
+	// Mouseout
+	document.addEventListener("mouseout", function(event) {		
+		var elementXPath = getXPath(event.target);
+		console.log('Mouseover : ' + elementXPath);
+		sendEvent("{\"path\":\"" + elementXPath + "\", \"action\":\"mouseout\"}");		
+	}, true);
+
+
 	// //Navigate
 	// chrome.webNavigation.onBeforeNavigate.addListener(function(details){
 	// 	console.log('navigating to '+details.url);
