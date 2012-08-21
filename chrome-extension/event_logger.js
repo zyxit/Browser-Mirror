@@ -7,6 +7,34 @@ function sendEvent(payload) {
 	xhr.send(payload);
 }
 
+// Checks if key is one of control or non-printable keys
+
+
+function isCharacterKeyPress(event) {
+	if (typeof event.which == "undefined") {
+		// This is IE, which only fires keypress events for printable keys
+		return true;
+	} else if (typeof event.which == "number" && event.which > 0) {
+		// In other browsers except old versions of WebKit, evt.which is
+		// only greater than zero if the keypress is a printable key.
+		// We need to filter out control keys
+		var control_keys = {
+			"17": "control",
+			"91": "meta",
+			"93": "meta",
+			"18": "alt",
+			"16": "shift",
+			"9": "tab",
+			"8": "backspace",
+			"13": "enter",
+			"27": "escape",
+			"46": "delete"
+		};
+		return control_keys[event.which] == null;
+	}
+	return false;
+}
+
 
 if (window.jQuery) {
 	console.info("Sending spies");
@@ -27,18 +55,23 @@ if (window.jQuery) {
 		sendEvent("{\"path\":\"" + elementXPath + "\", \"action\":\"type\", \"content\":\"" + keyIdentifier + "\"}");
 	}, true);
 
-	// Key down – that's for special keys
+	// Keydown – that's for special keys
 	document.addEventListener("keydown", function(event) {
 		var elementXPath = getXPath(event.target);
 		var keyIdentifier;
-		if (String.fromCharCode(event.which)!="") {
+		if (isCharacterKeyPress(event)) {
+			// For charcter keys return printable character instead of code
 			keyIdentifier = String.fromCharCode(event.which);
-		} else{
+		} else {
 			keyIdentifier = event.which;
 		};
-		
-		console.log('Pressed down: ' + keyIdentifier + ' on ' + elementXPath + ' alt: ' + event.altKey + ' meta: ' + event.metaKey + ' shift: ' + event.shiftKey);
-		sendEvent("{\"path\":\"" + elementXPath + "\", \"action\":\"keydown\", \"keyIdentifier\":\"" + keyIdentifier + "\", \"metaKey\":\"" + event.metaKey + "\", \"ctrlKey\":\"" + event.ctrlKey + "\", \"altKey\":\"" + event.altKey + "\", \"shiftKey\":\"" + event.shiftKey + "\"}");
+
+		if (isCharacterKeyPress(event) && ((!event.altKey && !event.metaKey && !event.shiftKey && !event.ctrlKey)||(!event.altKey && !event.metaKey && event.shiftKey && !event.ctrlKey)))  {
+			// Ignore as it's just normal key press and will be sent via "keypress event" or someone did Shift+key to make it capital – again will be sent via keypress event
+		} else {
+			console.log('Pressed down: ' + keyIdentifier + ' on ' + elementXPath + ' alt: ' + event.altKey + ' meta: ' + event.metaKey + ' shift: ' + event.shiftKey + ' ctrl: ' + event.ctrlKey);
+			sendEvent("{\"path\":\"" + elementXPath + "\", \"action\":\"keydown\", \"keyIdentifier\":\"" + keyIdentifier + "\", \"metaKey\":\"" + event.metaKey + "\", \"ctrlKey\":\"" + event.ctrlKey + "\", \"altKey\":\"" + event.altKey + "\", \"shiftKey\":\"" + event.shiftKey + "\"}");
+		};
 	}, true);
 
 

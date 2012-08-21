@@ -71,23 +71,23 @@ class QueueServer < EM::Connection
 			when "keydown"
       	control_key = convert_control_key_to_symbol(parsed_command["keyIdentifier"])
       	key_buff = []
-      	if parsed_command["altKey"].eql?("true")
+      	if parsed_command["altKey"].eql?("true") && control_key != :alt
       		key_buff << :alt
       	end
-      	if parsed_command["ctrlKey"].eql?("true")
+      	if parsed_command["ctrlKey"].eql?("true") && control_key != :control
       		key_buff << :control
       	end
-      	if parsed_command["metaKey"].eql?("true")
+      	if parsed_command["metaKey"].eql?("true") && control_key != :meta
       		key_buff << :meta
       	end
-      	if parsed_command["shiftKey"].eql?("true")
+      	if parsed_command["shiftKey"].eql?("true") && control_key != :shift
       		key_buff << :shift
       	end
       	key_buff << control_key
       	
       	if key_buff
       		puts "Pressing #{key_buff}"
-        	@driver.switch_to.active_element.send_keys(key_buff)	
+        	@driver.switch_to.active_element.send_keys(key_buff)
       	end        
 
       when "open"
