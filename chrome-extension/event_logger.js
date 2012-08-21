@@ -28,7 +28,15 @@ function isCharacterKeyPress(event) {
 			"8": "backspace",
 			"13": "enter",
 			"27": "escape",
-			"46": "delete"
+			"46": "delete",
+			"37": "left",
+			"39": "right",
+			"40": "down",
+			"38": "up",
+			"33": "page_up",
+			"34": "page_down",
+			"36": "home",
+			"35": "end"
 		};
 		return control_keys[event.which] == null;
 	}
@@ -48,7 +56,7 @@ if (window.jQuery) {
 
 
 	// Type
-	document.addEventListener("keypress", function(event) {
+	document.addEventListener("keypress", function(event) {		
 		var elementXPath = getXPath(event.target);
 		var keyIdentifier = String.fromCharCode(event.which);
 		console.log('Pressed: ' + keyIdentifier + ' on ' + elementXPath + ' alt: ' + event.ctrlKey + ' meta: ' + event.metaKey + ' shift: ' + event.shiftKey);
@@ -56,7 +64,7 @@ if (window.jQuery) {
 	}, true);
 
 	// Keydown – that's for special keys
-	document.addEventListener("keydown", function(event) {
+	document.addEventListener("keydown", function(event) {		
 		var elementXPath = getXPath(event.target);
 		var keyIdentifier;
 		if (isCharacterKeyPress(event)) {

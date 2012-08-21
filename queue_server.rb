@@ -47,9 +47,17 @@ class QueueServer < EM::Connection
 			"8" => :backspace,
 			"13" => :enter,
 			"27" => :escape,
-			"46" => :delete
+			"46" => :delete,
+			"37" => :left,
+			"39" => :right,
+			"40" => :down,
+			"38" => :up,
+			"33" => :page_up,
+			"34" => :page_down,
+			"36" => :home,
+			"35" => :end
   	}
-  	key_map[control_key] || control_key
+  	key_map[control_key] || control_key.downcase
   end
 
   def run_command(command)
