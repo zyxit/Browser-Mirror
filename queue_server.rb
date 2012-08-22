@@ -86,20 +86,25 @@ class QueueServer < EM::Connection
       case parsed_command["action"]
       when "click"
         puts "Clicking on "+parsed_command["path"]
-        @driver.find_element(:xpath, parsed_command["path"]).click
+        element = @driver.find_element(:xpath, parsed_command["path"])
+        # @driver.find_element(:xpath, parsed_command["path"]).click
+        @driver.action.click(element).perform
 
       when "mouseover"
         puts "Mouseover on "+parsed_command["path"]
-        fire_event 'mouseover', parsed_command["path"]
+        element = @driver.find_element(:xpath, parsed_command["path"])
+        @driver.action.move_to(element).perform
+        # fire_event 'mouseover', parsed_command["path"]
 
       when "mouseout"
         puts "Mouseout on "+parsed_command["path"]
-        fire_event 'mouseout', parsed_command["path"]
+        # fire_event 'mouseout', parsed_command["path"]
 
       when "type"
         character = parsed_command["content"]
         puts "Typing #{character} in #{parsed_command["path"]}"
-        @driver.switch_to.active_element.send_keys(character)
+        @driver.action.send_keys(character).perform
+        # @driver.switch_to.active_element.send_keys(character)
 
       when "keydown"
         control_key = convert_control_key_to_symbol(parsed_command["keyIdentifier"])
@@ -120,7 +125,8 @@ class QueueServer < EM::Connection
 
         if key_buff
           puts "Pressing #{key_buff}"
-          @driver.switch_to.active_element.send_keys(key_buff)
+          @driver.action.send_keys(key_buff).perform
+          # @driver.switch_to.active_element.send_keys(key_buff)
         end
 
       when "open"
@@ -159,7 +165,10 @@ class QueueServer < EM::Connection
 end
 
 EventMachine::run do
-  driver = Selenium::WebDriver.for :firefox
+  # driver = Selenium::WebDriver.for :firefox
+  caps = Selenium::WebDriver::Remote::Capabilities.ie(:native_events => true)
+  driver = Selenium::WebDriver.for :remote, :url => "http://172.20.5.122:4444/wd/hub", :desired_capabilities => caps
+
   driver.navigate.to "http://localhost:3000"
 
   EventMachine::start_server "127.0.0.1", 8081, QueueServer, driver
