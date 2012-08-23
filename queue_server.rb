@@ -19,7 +19,7 @@ class QueueServer < EM::Connection
     @parser.on_body = proc do |body|
       @q.push body 		# Putting raw JSON into the queue
     end
-
+    
     @driver = driver
 
     # Proc that processes queue item
@@ -27,7 +27,7 @@ class QueueServer < EM::Connection
 
       # Start new thread and run item processing there, once it's done poll queue again
       EM.defer do
-        run_command command
+        run_command command        
         @q.pop(&process_q)
       end
     end
@@ -61,21 +61,7 @@ class QueueServer < EM::Connection
   end
 
 
-  def fire_event(event, path)
-  	  script = <<-eos
-    	var element = arguments[0];
-    	if (document.createEvent) {
-        var event = document.createEvent('MouseEvents');
-        event.initEvent('#{event}', true, true);
-        element.dispatchEvent(event);
-      } else if (document.createEventObject) {
-        element.fireEvent('#{event}');
-      }
-      eos
-
-      element = @driver.find_element(:xpath, path)
-      @driver.execute_script script, element
-  end
+  
 
   def run_command(command)
     #puts "Executing command #{command}"
@@ -104,6 +90,7 @@ class QueueServer < EM::Connection
         character = parsed_command["content"]
         puts "Typing #{character} in #{parsed_command["path"]}"
         @driver.action.send_keys(character).perform
+        puts "done"
         # @driver.switch_to.active_element.send_keys(character)
 
       when "keydown"
@@ -126,6 +113,7 @@ class QueueServer < EM::Connection
         if key_buff
           puts "Pressing #{key_buff}"
           @driver.action.send_keys(key_buff).perform
+          puts "done"
           # @driver.switch_to.active_element.send_keys(key_buff)
         end
 
@@ -146,7 +134,7 @@ class QueueServer < EM::Connection
       end
 
     rescue Exception => e
-      # Just ignore it
+      puts "Error"
     end
 
   end
@@ -165,11 +153,17 @@ class QueueServer < EM::Connection
 end
 
 EventMachine::run do
-  # driver = Selenium::WebDriver.for :firefox
+  EM.threadpool_size = 1
+  puts "Threadpool is #{EM.threadpool_size}"
+  # driver = Selenium::WebDriver.for :firefox  
+  #driver = Selenium::WebDriver.for :remote, :url => "http://172.16.141.131:4444/wd/hub", :desired_capabilities => caps
   caps = Selenium::WebDriver::Remote::Capabilities.ie(:native_events => true)
-  driver = Selenium::WebDriver.for :remote, :url => "http://172.20.5.122:4444/wd/hub", :desired_capabilities => caps
+  driver = Selenium::WebDriver.for :remote, :url => "http://172.16.141.131:4444/wd/hub", :desired_capabilities => caps
 
-  driver.navigate.to "http://localhost:3000"
+  #driver.navigate.to "http://localhost:3000"
+  driver.navigate.to "http://www.cs.tut.fi/~jkorpela/www/testel.html"
+  # driver.navigate.to "https://jira.atlassian.com/secure/Dashboard.jspa"
+
 
   EventMachine::start_server "127.0.0.1", 8081, QueueServer, driver
 
