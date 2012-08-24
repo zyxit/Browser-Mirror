@@ -5,17 +5,19 @@
   "description": "Extension for Browser Mirror that records all actions that user is making and transmits them to the mirrored browser",  
   "permissions": [
     "http://*/*",
-    "https://*/*"
+    "https://*/*",
+    "tabs"
   ],
+  "options_page": "options.html",
   "browser_action": {
     "default_icon": "32x32.png", // optional
     "default_title": "Browser Mirror",      // optional; shown in tooltip
-    "default_popup": "control.html"        // optional
+    "default_popup": "popup.html"
   },  
   "content_scripts": [
     {
       "matches": ["http://*/*", "https://*/*"],
-      "js" : ["jquery-1.8.0.min.js", "getXPath.js", "event_logger.js"]
+      "js" : ["jquery-1.8.0.min.js", "getXPath.js", "browserMirror.js"]
     }
   ]
 }

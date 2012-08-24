@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Browser Mirror</title>
+    <script src="popup.js"></script>
+    <style>
+    div#container {
+      text-align: left;      
+      font-family: sans-serif;
+      font-size: 0.8em;
+      width: 250px;      
+    }
+    div#banner{
+      color: whiteSmoke;
+      padding: 5px 0px;
+      text-align: center;      
+      border-radius: 3px;      
+      margin: 5px auto;
+    }
+    .running{
+      background-color: darkGreen;
+    }
+    .not_running{
+     background-color: darkGrey; 
+    }
+    </style>    
+  </head>
+  <body>
+    <div id="container">
+      <div id="banner">Browser Mirror</div>
+    	<form>
+        Remote browser address:<br/>
+        <input type="text" id="slave-browser-address" size="40"/><br />
+				Remote browser type: (ie, firefox, chrome, safari)<br/>
+        <input type="text" id="slave-browser-type" /><br />
+				<input type="checkbox" id="native-events" value="native-events"/> Use Native Events<br />
+				<br/>
+				<input type="button" value="Start" id="start">&nbsp;<input type="button" value="Stop" id="stop">        
+			</form>
+    </div>
+  </body>
+</html>
