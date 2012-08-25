@@ -28,9 +28,6 @@ Project consists of:
 
 === Starting it up
 1. Start remote webdriver server (see above)
-2. Start event server "./queue_server.rb" (make sure that it's pointing to right address of remote WD – need to change that in code) 
-If all is good you should see slave browser starting up in VM
-3. Start Master server and make sure that extension is enabled
-4. Do you actions and see them repeated on Slave browser
-
+2. Start event server "./queue_server.rb" 
+3. Click on chrome extension, check settings and press start – that should start up slave browser and you can start doing your actions
 
