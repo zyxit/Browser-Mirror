@@ -62,7 +62,8 @@ function startMirroring() {
 			configuration: {
 				slaveBrowserAddress: slaveBrowserAddressInputField.value,
 				slaveBrowserType: slaveBrowserTypeInputField.value,
-				nativeEvents: nativeEventsCheckbox.checked
+				nativeEvents: nativeEventsCheckbox.checked,
+				slaveBrowserStartUrl: tab.url
 			}
 		}, function(){});
 	});

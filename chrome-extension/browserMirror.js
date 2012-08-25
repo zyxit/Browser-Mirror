@@ -12,21 +12,20 @@ function(request, sender, sendResponse) {
 
 function startBrowserMirror(configuration) {
 	console.log('Starting...');
-	sendEvent({
-		"action": "start",
-		"slaveBrowserType": configuration["slaveBrowserType"],
-		"slaveBrowserAddress": configuration["slaveBrowserAddress"],
-		"nativeEvents": configuration["nativeEvents"]
-	});
 
+	sendEvent("\{"+
+		"\"action\":\"start\","+
+		"\"slaveBrowserType\":\""+configuration["slaveBrowserType"]+"\","+
+		"\"slaveBrowserAddress\":\""+configuration["slaveBrowserAddress"]+"\","+
+		"\"slaveBrowserStartUrl\":\""+configuration["slaveBrowserStartUrl"]+"\","+
+		"\"nativeEvents\":\""+configuration["nativeEvents"]+"\"\}");
+	
 	bindEventListeners();
 }
 
 function stopBrowserMirror() {
 	console.log('Stopping...');
-	sendEvent({
-		"action": "stop"
-	});
+	sendEvent("\{\"action\":\"stop\"\}");
 
 	unbindEventListeners();
 }

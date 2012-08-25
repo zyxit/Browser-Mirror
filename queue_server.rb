@@ -10,24 +10,22 @@ require "selenium-webdriver"
 
 class QueueServer < EM::Connection
 
-  def initialize(driver)
+  def initialize
 
     # Queue that will contain commands for slave browser to execute
     @q = EM::Queue.new
 
     @parser = Http::Parser.new
     @parser.on_body = proc do |body|
-      @q.push body 		# Putting raw JSON into the queue
+      @q.push body    # Putting raw JSON into the queue
     end
-    
-    @driver = driver
 
     # Proc that processes queue item
     process_q = Proc.new do |command|
 
       # Start new thread and run item processing there, once it's done poll queue again
       EM.defer do
-        run_command command        
+        run_command command
         @q.pop(&process_q)
       end
     end
@@ -61,37 +59,52 @@ class QueueServer < EM::Connection
   end
 
 
-  
-
   def run_command(command)
-    #puts "Executing command #{command}"
+    puts "Executing command #{command}"
     parsed_command = JSON.parse(command)
 
     begin
 
       case parsed_command["action"]
+      when "start"
+        puts "Starting slave browser "+parsed_command["slaveBrowserType"]
+        native_events = parsed_command["nativeEvents"]
+        caps = nil
+        case parsed_command["slaveBrowserType"]
+        when "ie"
+          caps = Selenium::WebDriver::Remote::Capabilities.ie(:native_events => native_events)
+        when "firefox"
+          caps = Selenium::WebDriver::Remote::Capabilities.firefox(:native_events => native_events)
+        when "chrome"
+          caps = Selenium::WebDriver::Remote::Capabilities.chrome(:native_events => native_events)
+        when "safari"
+          caps = Selenium::WebDriver::Remote::Capabilities.safari(:native_events => native_events)
+        else
+          puts "Browser type #{parsed_command['slaveBrowserType']} is not supported"
+          exit
+        end
+        @@driver = Selenium::WebDriver.for :remote, :url => parsed_command["slaveBrowserAddress"], :desired_capabilities => caps
+        @@driver.get parsed_command["slaveBrowserStartUrl"]
+
+      when "stop"
+        puts "Stopping slave browser "
+        @@driver.quit
+
       when "click"
         puts "Clicking on "+parsed_command["path"]
-        element = @driver.find_element(:xpath, parsed_command["path"])
-        # @driver.find_element(:xpath, parsed_command["path"]).click
-        @driver.action.click(element).perform
+        element = @@driver.find_element(:xpath, parsed_command["path"])
+        @@driver.action.click(element).perform
 
       when "mouseover"
         puts "Mouseover on "+parsed_command["path"]
-        element = @driver.find_element(:xpath, parsed_command["path"])
-        @driver.action.move_to(element).perform
-        # fire_event 'mouseover', parsed_command["path"]
+        element = @@driver.find_element(:xpath, parsed_command["path"])
+        @@driver.action.move_to(element).perform
 
-      when "mouseout"
-        puts "Mouseout on "+parsed_command["path"]
-        # fire_event 'mouseout', parsed_command["path"]
 
       when "type"
         character = parsed_command["content"]
         puts "Typing #{character} in #{parsed_command["path"]}"
-        @driver.action.send_keys(character).perform
-        puts "done"
-        # @driver.switch_to.active_element.send_keys(character)
+        @@driver.action.send_keys(character).perform
 
       when "keydown"
         control_key = convert_control_key_to_symbol(parsed_command["keyIdentifier"])
@@ -112,22 +125,20 @@ class QueueServer < EM::Connection
 
         if key_buff
           puts "Pressing #{key_buff}"
-          @driver.action.send_keys(key_buff).perform
-          puts "done"
-          # @driver.switch_to.active_element.send_keys(key_buff)
+          @@driver.action.send_keys(key_buff).perform
         end
 
       when "open"
         puts "Opening #{parsed_command["path"]}"
-        @driver.get(parsed_command["path"])
+        @@driver.get(parsed_command["path"])
 
       when "scroll"
         puts "Scrolling top: #{parsed_command["top"]} left: #{parsed_command["left"]}"
-        @driver.execute_script("window.scrollTo(#{parsed_command["left"]}, #{parsed_command["top"]})")
+        @@driver.execute_script("window.scrollTo(#{parsed_command["left"]}, #{parsed_command["top"]})")
 
       when "resize"
         puts "Resizing width: #{parsed_command["width"]} height: #{parsed_command["height"]}"
-        @driver.manage.window.resize_to(parsed_command["width"], parsed_command["height"])
+        @@driver.manage.window.resize_to(parsed_command["width"], parsed_command["height"])
 
       else
         puts "Unknown command: #{parsed_command.inspect}"
@@ -149,23 +160,13 @@ class QueueServer < EM::Connection
     @parser << data
   end
 
-
 end
 
 EventMachine::run do
+  @@driver=nil
   EM.threadpool_size = 1
   puts "Threadpool is #{EM.threadpool_size}"
-  # driver = Selenium::WebDriver.for :firefox  
-  #driver = Selenium::WebDriver.for :remote, :url => "http://172.16.141.131:4444/wd/hub", :desired_capabilities => caps
-  caps = Selenium::WebDriver::Remote::Capabilities.ie(:native_events => true)
-  driver = Selenium::WebDriver.for :remote, :url => "http://172.16.141.131:4444/wd/hub", :desired_capabilities => caps
-
-  #driver.navigate.to "http://localhost:3000"
-  driver.navigate.to "http://www.cs.tut.fi/~jkorpela/www/testel.html"
-  # driver.navigate.to "https://jira.atlassian.com/secure/Dashboard.jspa"
-
-
-  EventMachine::start_server "127.0.0.1", 8081, QueueServer, driver
+  EventMachine::start_server "127.0.0.1", 8081, QueueServer
 
   puts 'running queue server on 8081'
 
